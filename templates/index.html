@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inferno Vision</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="page-shell">
+        <div class="ambient ambient-one"></div>
+        <div class="ambient ambient-two"></div>
+        <div class="grid-glow"></div>
+        <div id="fire-alert-banner" class="fire-alert-banner" aria-live="polite" hidden>
+            <div>
+                <p class="alert-kicker">Emergency Response</p>
+                <strong>Fire detected in the latest frame.</strong>
+            </div>
+            <button id="dismiss-alert-btn" class="dismiss-alert-btn" type="button">Dismiss</button>
+        </div>
+
+        <header class="topbar">
+            <div class="brand">
+                <div class="brand-mark"></div>
+                <div>
+                    <p class="eyebrow">AWS Powered Fire Intelligence</p>
+                    <h1>Inferno Vision</h1>
+                </div>
+            </div>
+            <div class="topbar-actions">
+                <div class="topbar-chip">
+                    <span class="chip-dot"></span>
+                    <span id="backend-status">Backend ready</span>
+                </div>
+                <div class="user-chip">
+                    <span>Signed in as <strong>{{ current_user["username"] }}</strong></span>
+                    <form method="post" action="{{ url_for('logout') }}">
+                        <button type="submit" class="ghost-btn topbar-logout">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </header>
+
+        <main class="hero-layout">
+            <section class="hero-copy glass-panel">
+                <p class="section-tag">Responsive 3D Monitoring UI</p>
+                <h2>Real-time fire detection with cinematic motion and a live camera control center.</h2>
+                <p class="hero-text">
+                    Launch your browser camera, stream frames through Flask, and relay detection requests to AWS
+                    with a dashboard that feels alive on desktop and mobile.
+                </p>
+
+                <div class="hero-actions">
+                    <button id="start-btn" class="primary-btn">Start Live Scan</button>
+                    <button id="stop-btn" class="ghost-btn" disabled>Stop Scan</button>
+                </div>
+
+                <div class="hero-stats">
+                    <article class="stat-card tilt-card">
+                        <span class="stat-label">Detection cadence</span>
+                        <strong id="cadence-value">0.6s</strong>
+                        <span class="stat-meta">Adaptive real-time browser capture</span>
+                    </article>
+                    <article class="stat-card tilt-card">
+                        <span class="stat-label">API target</span>
+                        <strong>AWS</strong>
+                        <span class="stat-meta">Secure upload relay</span>
+                    </article>
+                    <article class="stat-card tilt-card">
+                        <span class="stat-label">UI state</span>
+                        <strong id="ui-state">Idle</strong>
+                        <span class="stat-meta">Smooth animated feedback</span>
+                    </article>
+                </div>
+            </section>
+
+            <section class="viewer-stack">
+                <div class="video-panel glass-panel">
+                    <div class="panel-header">
+                        <div>
+                            <p class="section-tag">Live Camera</p>
+                            <h3>Browser Monitoring Feed</h3>
+                        </div>
+                        <div class="signal">
+                            <span class="signal-ping"></span>
+                            <span id="camera-status">Camera offline</span>
+                        </div>
+                    </div>
+
+                    <div class="video-stage">
+                        <video id="camera-feed" autoplay playsinline muted></video>
+                        <canvas id="capture-canvas"></canvas>
+                        <div class="scanlines"></div>
+                        <div class="radar-ring radar-ring-one"></div>
+                        <div class="radar-ring radar-ring-two"></div>
+                        <div class="live-detection-panel">
+                            <span id="live-detection-badge" class="live-detection-badge badge-idle">Awaiting scan</span>
+                            <span id="frame-rate-label" class="overlay-pill">Frame relay every 0.6s</span>
+                        </div>
+                        <div class="video-overlay">
+                            <span class="overlay-pill">Thermal relay active</span>
+                            <span class="overlay-pill" id="last-check">Awaiting first scan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="insight-grid">
+                    <article class="info-panel glass-panel tilt-card">
+                        <p class="section-tag">System Health</p>
+                        <h3 id="request-state">Standing by</h3>
+                        <p id="request-details">Start the live scan to begin sending frames for detection.</p>
+                    </article>
+
+                    <article class="info-panel glass-panel tilt-card">
+                        <p class="section-tag">Latest Response</p>
+                        <pre id="response-viewer">No responses yet.</pre>
+                    </article>
+                </div>
+            </section>
+        </main>
+
+        <footer class="site-footer">
+            <span>Developed by Neha Gayakawad</span>
+        </footer>
+    </div>
+
+    <div id="alert-modal" class="alert-modal" hidden aria-live="assertive">
+        <div class="alert-modal-card">
+            <p class="alert-kicker">Critical Warning</p>
+            <h2>Fire Detected</h2>
+            <p id="alert-modal-text">The latest analysis indicates a possible fire event. Please inspect the area immediately.</p>
+            <button id="close-alert-modal-btn" class="primary-btn alert-modal-btn" type="button">Acknowledge</button>
+        </div>
+    </div>
+
+    <script>
+        window.APP_CONFIG = {
+            analyzeEndpoint: "{{ url_for('analyze_frame') }}",
+            healthEndpoint: "{{ url_for('health') }}",
+            detectionApi: "{{ api_url }}",
+            acknowledgeEndpoint: "{{ url_for('acknowledge_fire') }}"
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

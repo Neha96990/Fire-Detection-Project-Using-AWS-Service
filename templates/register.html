@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Inferno Vision</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-body">
+    <main class="auth-shell">
+        <section class="auth-panel glass-panel">
+            <p class="section-tag">Account Setup</p>
+            <h1 class="auth-title">Create your access account</h1>
+            <p class="auth-copy">Register with a local account or use Google sign-up so only authorized users can reach the fire monitoring dashboard.</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-stack">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="post" class="auth-form">
+                <label class="auth-label" for="username">Username</label>
+                <input id="username" name="username" class="auth-input" type="text" autocomplete="username" required>
+
+                <label class="auth-label" for="password">Password</label>
+                <input id="password" name="password" class="auth-input" type="password" autocomplete="new-password" minlength="8" required>
+
+                <label class="auth-label" for="confirm_password">Confirm Password</label>
+                <input id="confirm_password" name="confirm_password" class="auth-input" type="password" autocomplete="new-password" minlength="8" required>
+
+                <button type="submit" class="primary-btn auth-submit">Create Account</button>
+            </form>
+
+            {% if google_oauth_enabled %}
+                <div class="auth-divider"><span>or</span></div>
+                <a class="google-btn" href="{{ url_for('login_google') }}">
+                    <span class="google-mark">G</span>
+                    <span>Sign up with Google</span>
+                </a>
+                <p class="auth-note">Google sign-up is allowed only when Google confirms the email address is verified.</p>
+            {% endif %}
+
+            <p class="auth-footer">Already registered? <a href="{{ url_for('login') }}">Back to login</a></p>
+        </section>
+    </main>
+</body>
+</html>
