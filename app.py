@@ -573,7 +573,7 @@ def login_google():
         flash(auth_storage_message(), "error")
         return redirect(url_for("login"))
 
-    redirect_uri = url_for("authorize_google", _external=True)
+    redirect_uri = url_for("authorize_google", _external=True, _scheme="https")
     next_url = safe_redirect_target(request.args.get("next"))
     session["post_login_redirect"] = next_url
     return oauth.google.authorize_redirect(redirect_uri, prompt="select_account")
