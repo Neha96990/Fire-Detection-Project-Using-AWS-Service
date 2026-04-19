@@ -186,14 +186,14 @@ User: {user['username']}
 """
 
     try:
-        print(f"[SNS] Subscribing {user_email} to topic...", flush=True)
-        # Subscribe user email first
-        subscribe_result = subscribe_user_email_to_sns(user_email)
-        if not subscribe_result:
-            print(f"[SNS] Failed to subscribe {user_email}", flush=True)
-            # Continue anyway - may already be subscribed
+        # print(f"[SNS] Subscribing {user_email} to topic...", flush=True)
+        # # Subscribe user email first
+        # subscribe_result = subscribe_user_email_to_sns(user_email)
+        # if not subscribe_result:
+        #     print(f"[SNS] Failed to subscribe {user_email}", flush=True)
+        #     # Continue anyway - may already be subscribed
 
-        print(f"[SNS] Publishing notification to {user_email}...", flush=True)
+        # print(f"[SNS] Publishing notification to {user_email}...", flush=True)
         # Publish to SNS topic
         sns_client = boto3.client(
             "sns",
