@@ -148,6 +148,26 @@ def subscribe_user_email_to_sns(email: str) -> bool:
         print(f"[SNS] Subscription failed for {email}: {e}", flush=True)
         return False
 
+def ensure_user_subscribed(email):
+    sns_client = boto3.client("sns", region_name=app.config["AWS_REGION"])
+
+    response = sns_client.list_subscriptions_by_topic(
+        TopicArn=app.config["SNS_TOPIC_ARN"]
+    )
+
+    for sub in response.get("Subscriptions", []):
+        if sub.get("Endpoint") == email:
+            return True  # already subscribed
+
+    # subscribe only if not exists
+    sns_client.subscribe(
+        TopicArn=app.config["SNS_TOPIC_ARN"],
+        Protocol="email",
+        Endpoint=email,
+    )
+    print(f"Subscription request sent to {email}")
+    return False
+
 
 def send_fire_notification_sns(detection_details: dict[str, Any], is_acknowledgement: bool = False) -> bool:
     """Send notification via AWS SNS to current user's email."""
@@ -186,14 +206,14 @@ User: {user['username']}
 """
 
     try:
-        # print(f"[SNS] Subscribing {user_email} to topic...", flush=True)
-        # # Subscribe user email first
-        # subscribe_result = subscribe_user_email_to_sns(user_email)
-        # if not subscribe_result:
-        #     print(f"[SNS] Failed to subscribe {user_email}", flush=True)
-        #     # Continue anyway - may already be subscribed
+        print(f"[SNS] Subscribing {user_email} to topic...", flush=True)
+        # Subscribe user email first
+        ensure_user_subscribed(user_email)
+        if not subscribe_result:
+            print(f"[SNS] Failed to subscribe {user_email}", flush=True)
+            # Continue anyway - may already be subscribed
 
-        # print(f"[SNS] Publishing notification to {user_email}...", flush=True)
+        print(f"[SNS] Publishing notification to {user_email}...", flush=True)
         # Publish to SNS topic
         sns_client = boto3.client(
             "sns",
