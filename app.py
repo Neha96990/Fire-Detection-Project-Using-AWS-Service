@@ -201,7 +201,7 @@ Time: {datetime.now(timezone.utc).isoformat()}
     try:
         print(f"[SNS] Checking subscription for {user_email}", flush=True)
 
-        subscribed = ensure_user_subscribed(user_email)
+        print(f"[SNS] Using existing subscription for {user_email}")
 
         if not subscribed:
             print(f"[SNS] Confirm subscription for {user_email}", flush=True)
