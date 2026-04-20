@@ -221,8 +221,7 @@ Time: {datetime.now(timezone.utc).isoformat()}
     except Exception as e:
         print(f"[SNS ERROR]: {e}", flush=True)
         return False
-
-
+    
 class UserStoreError(RuntimeError):
     pass
 
@@ -810,9 +809,8 @@ def analyze_frame():
         fire_detected = detect_fire_signal(detection)
         
         # Send SNS notification on first fire detection
-        if fire_detected and not session.get("fire_notification_sent"):
+        if fire_detected:
             send_fire_notification_sns(detection, is_acknowledgement=False)
-            session["fire_notification_sent"] = True
         elif not fire_detected and session.get("fire_notification_sent"):
             session.pop("fire_notification_sent", None)
         
