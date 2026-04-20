@@ -151,28 +151,25 @@ def subscribe_user_email_to_sns(email: str) -> bool:
 def ensure_user_subscribed(email):
     sns_client = boto3.client("sns", region_name=app.config["AWS_REGION"])
 
-    response = sns_client.list_subscriptions_by_topic(
-        TopicArn=app.config["SNS_TOPIC_ARN"]
-    )
+    paginator = sns_client.get_paginator("list_subscriptions_by_topic")
 
-    for sub in response.get("Subscriptions", []):
-        if sub.get("Endpoint") == email:
-            return True  # already subscribed
+    for page in paginator.paginate(TopicArn=app.config["SNS_TOPIC_ARN"]):
+        for sub in page.get("Subscriptions", []):
+            if sub.get("Endpoint") == email:
+                return True  # already subscribed
 
-    # subscribe only if not exists
     sns_client.subscribe(
         TopicArn=app.config["SNS_TOPIC_ARN"],
         Protocol="email",
         Endpoint=email,
     )
-    print(f"Subscription request sent to {email}")
+    print(f"[SNS] Subscription request sent to {email}")
     return False
 
 
 def send_fire_notification_sns(detection_details: dict[str, Any], is_acknowledgement: bool = False) -> bool:
-    """Send notification via AWS SNS to current user's email."""
     if not app.config["SNS_TOPIC_ARN"]:
-        print("[SNS] SNS_TOPIC_ARN not configured in environment", flush=True)
+        print("[SNS] SNS_TOPIC_ARN not configured", flush=True)
         return False
 
     if boto3 is None:
@@ -186,53 +183,46 @@ def send_fire_notification_sns(detection_details: dict[str, Any], is_acknowledge
 
     user_email = user.get("email", "").strip().lower()
     if not user_email:
-        print(f"[SNS] User '{user['username']}' has no email address in account", flush=True)
+        print("[SNS] No user email", flush=True)
         return False
 
-    if is_acknowledgement:
-        subject = "Fire Alert Acknowledged - Inferno Vision"
-        action = "acknowledged"
-    else:
-        subject = "Fire Detected - Inferno Vision"
-        action = "detected"
+    subject = "Fire Detected - Inferno Vision" if not is_acknowledgement else "Fire Acknowledged"
+    
+    message = f"""
+Fire alert triggered!
 
-    message = f"""Fire alert has been {action}.
-
-Detection Details:
+Details:
 {json.dumps(detection_details, indent=2)}
 
-Timestamp: {datetime.now(timezone.utc).isoformat()}
 User: {user['username']}
+Time: {datetime.now(timezone.utc).isoformat()}
 """
 
     try:
-        print(f"[SNS] Subscribing {user_email} to topic...", flush=True)
-        # Subscribe user email first
-        ensure_user_subscribed(user_email)
-        if not subscribe_result:
-            print(f"[SNS] Failed to subscribe {user_email}", flush=True)
-            # Continue anyway - may already be subscribed
+        print(f"[SNS] Checking subscription for {user_email}", flush=True)
 
-        print(f"[SNS] Publishing notification to {user_email}...", flush=True)
-        # Publish to SNS topic
-        sns_client = boto3.client(
-            "sns",
-            region_name=app.config["AWS_REGION"],
-        )
+        subscribed = ensure_user_subscribed(user_email)
+
+        if not subscribed:
+            print(f"[SNS] Confirm subscription for {user_email}", flush=True)
+
+        sns_client = boto3.client("sns", region_name=app.config["AWS_REGION"])
+
         response = sns_client.publish(
             TopicArn=app.config["SNS_TOPIC_ARN"],
             Subject=subject,
             Message=message,
         )
-        message_id = response.get("MessageId")
-        print(f"[SNS] Notification published successfully. MessageId: {message_id}", flush=True)
+
+        print(f"[SNS] Email sent! MessageId: {response.get('MessageId')}", flush=True)
+
         return True
-    except (BotoCoreError, ClientError) as e:
-        print(f"[SNS] AWS error: {type(e).__name__}: {e}", flush=True)
-        return False
+
     except Exception as e:
-        print(f"[SNS] Unexpected error: {type(e).__name__}: {e}", flush=True)
+        print(f"[SNS ERROR]: {e}", flush=True)
         return False
+
+
 class UserStoreError(RuntimeError):
     pass
 
